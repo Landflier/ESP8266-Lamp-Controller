@@ -21,30 +21,38 @@ this functionality, you can remove the checkGroupAndSerial() condition in the vo
 If you do want to use this functionality however, edit the following constants: <br />
 serialNumber_UNIQ -> The serial number of a device <br />
 group_UNIQ -> The group of a device<br />
+ID_default -> This is a very important define, as this is like the MAC of the device.This cannot be change through communication, only by hand, so change before uploading code.<br /> 
+
 
 Other important variables are: <br />
 thingsboard_topic_in -> Broker topic for sending messages <br />
 thingsboard_topic_out -> Topic on which devices send info about their state <br />
 thingsboard_topic_request -> A topic specifically designed for requesting info about device state <br />
+thingsboard_topic_set -> Topic for changing group or serialNumber of a device
 
 
 <br />
-Valid messages with their respective answers in "lamps_out" topic (please change all instances of serialNumber, group, 127.0.0.1 and topic names to those you edited in your .ino code!) <br />
+Valid messages with their respective answers in "lamps_out" topic (please change all instances of serialNumber, group, ID, 127.0.0.1 and topic names to those you edited in your .ino code!) <br />
 
 ```
 mosquitto_pub -h 127.0.0.1 -p 1883 -t "lamps_in" -m '{"relay_pin_state":true, "serialNumber":"SP-004"}'
-{"serialNumber":"SP-004","ID":"BB-8","group":"AAAC","relay_pin":5,"dimming_pin":16,"dimming_pin_state":35,"relay_pin_state":true,"rssi":-83}
+{"serialNumber":"SP-004","ID":"BB-9","group":"AAAC","relay_pin":5,"dimming_pin":16,"dimming_pin_state":35,"relay_pin_state":true,"rssi":-83}
 ```
 
 ```
 mosquitto_pub -h 127.0.0.1 -p 1883 -t "lamps_in" -m '{"dimming_pin_state":240, "group":"AAAC"}'
-{"serialNumber":"SP-004","ID":"BB-8","group":"AAAC","relay_pin":5,"dimming_pin":16,"dimming_pin_state":240,"relay_pin_state":true,"rssi":-81}
+{"serialNumber":"SP-004","ID":"BB-9","group":"AAAC","relay_pin":5,"dimming_pin":16,"dimming_pin_state":240,"relay_pin_state":true,"rssi":-81}
 ```
 
 
 ```
-mosquitto_pub -h 127.0.0.1 -p 1883 -t "lamps_in" -m '{"relay_pin_state":false, "dimming_pin_state" :140, "serialNumber":"SP-004"}'
-{"serialNumber":"SP-004","ID":"BB-8","group":"AAAC","relay_pin":5,"dimming_pin":16,"dimming_pin_state":140,"relay_pin_state":false,"rssi":-80}
+mosquitto_pub -h 127.0.0.1 -p 1883 -t "lamps_set" -m '{"ID": "BB-9" , "group":"DD"}'
+{"serialNumber":"SP-004","ID":"BB-9","group":"DD","relay_pin":5,"dimming_pin":16,"dimming_pin_state":2,"relay_pin_state":true,"rssi":31}
+```
+
+```
+mosquitto_pub -h 127.0.0.1 -p 1883 -t "lamps_set" -m '{"ID": "BB-9" , "serialNumber":"AA8"}'
+{"serialNumber":"AA8","ID":"BB-9","group":"AAAC","relay_pin":5,"dimming_pin":16,"dimming_pin_state":2,"relay_pin_state":true,"rssi":31}
 ```
 
 
@@ -72,8 +80,7 @@ This project is licensed under the GPLv3 License - see the [GPLv3](https://www.g
 
 ## Remarks
 
-* EEPROM storage was added in the first place with the idea that one could change the serialNumber and group of a device later on after boot. 
-This feature is not yet fully added, therefore serial and group are hardcoded. Implementating this can be done in the WriteToFile() funciton <br />
-However this library helps with reading the dimming state, since AnalogRead() does not work well with the ESP8266 Board I am using.
-* An overall overhaul of the code is needed. For example dividing it up into different parts, better comments, consistency of variable names.
+* Added EEPROM storage with the functionality of setting group and serialNumber. These changes are preserved when the board is shutdown.  
+Unfortunately, due to the use of flash memory, sometimes the board can misinterpret a given message. This can be fixed with a simple restart. In future version will add a memory card, which will be much more stable.
+* An overall overhaul of the code is needed. For example, dividing it up into different parts and better comments can help future development.
 
